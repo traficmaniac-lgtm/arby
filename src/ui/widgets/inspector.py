@@ -4,8 +4,8 @@ import datetime as dt
 
 from PySide6 import QtWidgets
 
-from ...core.types import ArbRow
-from ...utils import formatting
+from src.core.types import ArbRow
+from src.utils import formatting
 
 
 class InspectorPanel(QtWidgets.QWidget):

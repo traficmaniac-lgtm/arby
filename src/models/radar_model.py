@@ -4,8 +4,8 @@ from typing import List, Set
 
 from PySide6 import QtCore, QtGui
 
-from ..core.types import ArbRow
-from ..utils import formatting
+from src.core.types import ArbRow
+from src.utils import formatting
 
 
 class RadarModel(QtCore.QAbstractTableModel):

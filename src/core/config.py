@@ -1,11 +1,19 @@
 from __future__ import annotations
 
 import json
+import os
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-CONFIG_PATH = Path(__file__).resolve().parents[2] / "config.json"
+DEFAULT_CONFIG_PATH = Path(__file__).resolve().parents[2] / "config.json"
+
+
+def config_path() -> Path:
+    env_path = os.environ.get("ARBY_CONFIG_PATH")
+    if env_path:
+        return Path(env_path).expanduser()
+    return DEFAULT_CONFIG_PATH
 
 
 @dataclass
@@ -70,14 +78,17 @@ class AppConfig:
 
 
 def load_config() -> AppConfig:
-    if not CONFIG_PATH.exists():
+    path = config_path()
+    if not path.exists():
         return AppConfig()
     try:
-        data = json.loads(CONFIG_PATH.read_text(encoding="utf-8"))
+        data = json.loads(path.read_text(encoding="utf-8"))
     except json.JSONDecodeError:
         return AppConfig()
     return AppConfig.from_dict(data)
 
 
 def save_config(config: AppConfig) -> None:
-    CONFIG_PATH.write_text(json.dumps(config.to_dict(), indent=2), encoding="utf-8")
+    path = config_path()
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(config.to_dict(), indent=2), encoding="utf-8")

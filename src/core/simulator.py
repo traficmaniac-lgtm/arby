@@ -5,7 +5,7 @@ import time
 from dataclasses import dataclass
 from typing import Dict, List
 
-from .types import ExchangeStatus, QuoteSnapshot
+from src.core.types import ExchangeStatus, QuoteSnapshot
 
 
 @dataclass

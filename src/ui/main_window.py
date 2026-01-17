@@ -6,14 +6,14 @@ from typing import Optional
 
 from PySide6 import QtCore, QtGui, QtWidgets
 
-from ..core.config import load_config, save_config
-from ..core.controller import RadarController
-from ..models.radar_model import RadarModel
-from ..utils.shortcuts import bind_shortcut
-from .widgets.filter_panel import FilterPanel
-from .widgets.inspector import InspectorPanel
-from .widgets.log_panel import LogPanel
-from .widgets.toast import Toast
+from src.core.config import load_config, save_config
+from src.core.controller import RadarController
+from src.models.radar_model import RadarModel
+from src.ui.widgets.filter_panel import FilterPanel
+from src.ui.widgets.inspector import InspectorPanel
+from src.ui.widgets.log_panel import LogPanel
+from src.ui.widgets.toast import Toast
+from src.utils.shortcuts import bind_shortcut
 
 
 class PairFilterProxyModel(QtCore.QSortFilterProxyModel):
@@ -191,6 +191,11 @@ class MainWindow(QtWidgets.QMainWindow):
         bind_shortcut(self, "Ctrl+Enter", self._start_shortcut)
         bind_shortcut(self, "Ctrl+Shift+S", self._stop_shortcut)
         bind_shortcut(self, "Ctrl+C", self._copy_signal_shortcut)
+
+    def run_smoke(self, ticks: int = 3) -> None:
+        self._apply_filters()
+        for _ in range(ticks):
+            self._controller.refresh()
 
     def _append_log(self, level: str, message: str) -> None:
         self._log_panel.append(level, message)
