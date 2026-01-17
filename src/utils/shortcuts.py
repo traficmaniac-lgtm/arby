@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from PySide6 import QtGui, QtWidgets
+from PySide6 import QtCore, QtGui, QtWidgets
 
 
 def bind_shortcut(
@@ -9,6 +9,6 @@ def bind_shortcut(
     callback,
 ) -> QtWidgets.QShortcut:
     shortcut = QtWidgets.QShortcut(QtGui.QKeySequence(sequence), parent)
-    shortcut.setContext(QtGui.Qt.ApplicationShortcut)
+    shortcut.setContext(QtCore.Qt.ApplicationShortcut)
     shortcut.activated.connect(callback)
     return shortcut

@@ -3,7 +3,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import Dict, List
 
-from .types import ExchangeStatus, QuoteSnapshot
+from src.core.types import ExchangeStatus, QuoteSnapshot
 
 
 class ExchangeClient(ABC):

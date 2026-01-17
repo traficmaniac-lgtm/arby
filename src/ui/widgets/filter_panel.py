@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from PySide6 import QtCore, QtWidgets
 
-from ...core.controller import FilterSettings
+from src.core.controller import FilterSettings
 
 
 class FilterPanel(QtWidgets.QWidget):

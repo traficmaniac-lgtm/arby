@@ -4,9 +4,9 @@ import time
 from dataclasses import dataclass
 from typing import Dict, List
 
-from .exchange_client import ExchangeClient
-from .simulator import MarketSimulator
-from .types import ExchangeStatus, QuoteSnapshot
+from src.core.exchange_client import ExchangeClient
+from src.core.simulator import MarketSimulator
+from src.core.types import ExchangeStatus, QuoteSnapshot
 
 
 class SimulatorClient(ExchangeClient):

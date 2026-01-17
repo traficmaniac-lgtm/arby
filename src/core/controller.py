@@ -6,9 +6,9 @@ from typing import Callable, Dict, List, Optional
 
 from PySide6 import QtCore
 
-from .data_provider import DataProvider
-from .types import ArbRow, ExchangeStatus
-from ..utils.formatting import normalize_pair
+from src.core.data_provider import DataProvider
+from src.core.types import ArbRow, ExchangeStatus
+from src.utils.formatting import normalize_pair
 
 
 @dataclass
