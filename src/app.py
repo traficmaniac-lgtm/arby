@@ -4,8 +4,8 @@ import sys
 
 from PySide6 import QtWidgets
 
-from .ui.main_window import MainWindow
-from .utils.theme import dark_theme
+from src.ui.main_window import MainWindow
+from src.utils.theme import dark_theme
 
 
 def main() -> int:
