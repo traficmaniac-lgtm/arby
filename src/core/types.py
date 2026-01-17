@@ -15,6 +15,7 @@ class QuoteSnapshot:
 
 @dataclass(frozen=True)
 class ArbRow:
+    favorite: bool
     pair: str
     buy_exchange: str
     buy_price: float
@@ -26,6 +27,7 @@ class ArbRow:
     spread: float
     quality: str
     quality_flags: tuple[str, ...]
+    updated_ts: float
     binance_bid: float
     binance_ask: float
     poloniex_bid: float

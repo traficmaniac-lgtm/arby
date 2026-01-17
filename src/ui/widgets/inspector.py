@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import datetime as dt
+
 from PySide6 import QtWidgets
 
 from ...core.types import ArbRow
@@ -41,6 +43,19 @@ class InspectorPanel(QtWidgets.QWidget):
         self._quality_label.setText(quality_flags)
         self._source_label.setText(row.data_source)
 
+    def set_health(self, data: dict) -> None:
+        self._provider_mode.setText(data.get("provider_mode", "-"))
+        self._last_update.setText(self._format_time(data.get("last_update")))
+        ages = data.get("exchange_ages", {})
+        self._binance_age.setText(self._format_age(ages.get("Binance")))
+        self._poloniex_age.setText(self._format_age(ages.get("Poloniex")))
+
+    def set_exchange_status(self, name: str, status: str) -> None:
+        if name == "Binance":
+            self._binance_status.setText(status)
+        elif name == "Poloniex":
+            self._poloniex_status.setText(status)
+
     def _build_ui(self) -> None:
         layout = QtWidgets.QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
@@ -81,6 +96,21 @@ class InspectorPanel(QtWidgets.QWidget):
         metrics_layout.addRow("Quality flags", self._quality_label)
         metrics_layout.addRow("Data source", self._source_label)
 
+        health_group = QtWidgets.QGroupBox("Health")
+        health_layout = QtWidgets.QFormLayout(health_group)
+        self._binance_status = QtWidgets.QLabel("-")
+        self._binance_age = QtWidgets.QLabel("-")
+        self._poloniex_status = QtWidgets.QLabel("-")
+        self._poloniex_age = QtWidgets.QLabel("-")
+        self._provider_mode = QtWidgets.QLabel("-")
+        self._last_update = QtWidgets.QLabel("-")
+        health_layout.addRow("Binance status", self._binance_status)
+        health_layout.addRow("Binance age", self._binance_age)
+        health_layout.addRow("Poloniex status", self._poloniex_status)
+        health_layout.addRow("Poloniex age", self._poloniex_age)
+        health_layout.addRow("Provider mode", self._provider_mode)
+        health_layout.addRow("Last update", self._last_update)
+
         buttons = QtWidgets.QHBoxLayout()
         self._copy_signal = QtWidgets.QPushButton("Copy signal")
         self._copy_pair = QtWidgets.QPushButton("Copy pair")
@@ -91,6 +121,7 @@ class InspectorPanel(QtWidgets.QWidget):
         layout.addWidget(price_group)
         layout.addWidget(formula_group)
         layout.addWidget(metrics_group)
+        layout.addWidget(health_group)
         layout.addLayout(buttons)
         layout.addStretch(1)
 
@@ -114,3 +145,13 @@ class InspectorPanel(QtWidgets.QWidget):
         if not self._current_row:
             return
         QtWidgets.QApplication.clipboard().setText(self._current_row.pair)
+
+    def _format_time(self, timestamp: float | None) -> str:
+        if not timestamp:
+            return "-"
+        return dt.datetime.fromtimestamp(timestamp).strftime("%H:%M:%S")
+
+    def _format_age(self, age: float | None) -> str:
+        if age is None:
+            return "-"
+        return f"{age:.1f}s"

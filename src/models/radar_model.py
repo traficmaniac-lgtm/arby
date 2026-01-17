@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import List
+from typing import List, Set
 
 from PySide6 import QtCore, QtGui
 
@@ -10,6 +10,7 @@ from ..utils import formatting
 
 class RadarModel(QtCore.QAbstractTableModel):
     headers = [
+        "★",
         "Pair",
         "Buy @",
         "Buy Price",
@@ -26,6 +27,8 @@ class RadarModel(QtCore.QAbstractTableModel):
         super().__init__()
         self._rows: List[ArbRow] = []
         self._profit_threshold = 0.5
+        self._favorites: Set[str] = set()
+        self._show_favorites_only = False
 
     def rowCount(self, parent=QtCore.QModelIndex()) -> int:
         return len(self._rows)
@@ -44,10 +47,12 @@ class RadarModel(QtCore.QAbstractTableModel):
         if role == QtCore.Qt.UserRole:
             return self._sort_value(row, column)
         if role == QtCore.Qt.TextAlignmentRole:
-            if column in {2, 4, 5, 6, 7, 8}:
+            if column in {3, 5, 6, 7, 8, 9}:
                 return QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter
+            if column == 0:
+                return QtCore.Qt.AlignCenter
             return QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter
-        if role == QtCore.Qt.FontRole and column == 5:
+        if role == QtCore.Qt.FontRole and column == 6:
             font = QtGui.QFont()
             font.setBold(True)
             font.setPointSize(11)
@@ -55,7 +60,7 @@ class RadarModel(QtCore.QAbstractTableModel):
         if role == QtCore.Qt.ForegroundRole and row.quality == "Stale":
             return QtGui.QBrush(QtGui.QColor(128, 134, 148))
         if role == QtCore.Qt.BackgroundRole:
-            return self._background_brush(row)
+            return self._background_brush(row, column)
         return None
 
     def headerData(self, section: int, orientation: QtCore.Qt.Orientation, role: int = QtCore.Qt.DisplayRole):
@@ -71,6 +76,27 @@ class RadarModel(QtCore.QAbstractTableModel):
             top_left = self.index(0, 0)
             bottom_right = self.index(len(self._rows) - 1, len(self.headers) - 1)
             self.dataChanged.emit(top_left, bottom_right, [QtCore.Qt.BackgroundRole])
+
+    def set_show_favorites_only(self, enabled: bool) -> None:
+        self._show_favorites_only = enabled
+
+    def set_favorites(self, favorites: List[str]) -> None:
+        self._favorites = {pair.upper() for pair in favorites}
+        self._sync_favorites()
+
+    def is_favorite(self, pair: str) -> bool:
+        return pair.upper() in self._favorites
+
+    def toggle_favorite(self, pair: str) -> None:
+        normalized = pair.upper()
+        if normalized in self._favorites:
+            self._favorites.remove(normalized)
+        else:
+            self._favorites.add(normalized)
+        self._sync_favorites()
+
+    def favorites(self) -> List[str]:
+        return sorted(self._favorites)
 
     def update_rows(self, rows: List[ArbRow]) -> None:
         new_pairs = [row.pair for row in rows]
@@ -97,31 +123,37 @@ class RadarModel(QtCore.QAbstractTableModel):
 
     def _display_data(self, row: ArbRow, column: int) -> str:
         if column == 0:
-            return row.pair
+            return "★" if row.favorite else ""
         if column == 1:
-            return row.buy_exchange
+            return row.pair
         if column == 2:
-            return formatting.format_price(row.buy_price)
+            return row.buy_exchange
         if column == 3:
-            return row.sell_exchange
+            return formatting.format_price(row.buy_price)
         if column == 4:
-            return formatting.format_price(row.sell_price)
+            return row.sell_exchange
         if column == 5:
+            return formatting.format_price(row.sell_price)
+        if column == 6:
             text = formatting.format_pct(row.profit_pct)
             if row.profit_pct > 5:
                 text += "!"
             return text
-        if column == 6:
-            return formatting.format_volume(row.volume_24h)
         if column == 7:
-            return f"{row.updated_secs:.1f}s"
+            return formatting.format_volume(row.volume_24h)
         if column == 8:
-            return formatting.format_price(row.spread)
+            return f"{row.updated_secs:.1f}s"
         if column == 9:
+            return formatting.format_price(row.spread)
+        if column == 10:
             return row.quality
         return ""
 
-    def _background_brush(self, row: ArbRow) -> QtGui.QBrush | None:
+    def _background_brush(self, row: ArbRow, column: int) -> QtGui.QBrush | None:
+        if column == 6 and row.profit_pct > 0:
+            intensity = min(row.profit_pct / max(self._profit_threshold, 0.01), 2.0)
+            alpha = int(min(180, 40 + intensity * 60))
+            return QtGui.QBrush(QtGui.QColor(35, 62, 88, alpha))
         if row.quality == "Suspicious":
             return QtGui.QBrush(QtGui.QColor(68, 35, 45))
         if row.quality == "Stale":
@@ -132,23 +164,58 @@ class RadarModel(QtCore.QAbstractTableModel):
 
     def _sort_value(self, row: ArbRow, column: int):
         if column == 0:
-            return row.pair
+            return 1 if row.favorite else 0
         if column == 1:
-            return row.buy_exchange
+            return row.pair
         if column == 2:
-            return row.buy_price
+            return row.buy_exchange
         if column == 3:
-            return row.sell_exchange
+            return row.buy_price
         if column == 4:
-            return row.sell_price
+            return row.sell_exchange
         if column == 5:
-            return row.profit_pct
+            return row.sell_price
         if column == 6:
-            return row.volume_24h
+            return row.profit_pct
         if column == 7:
-            return row.updated_secs
+            return row.volume_24h
         if column == 8:
-            return row.spread
+            return row.updated_secs
         if column == 9:
+            return row.spread
+        if column == 10:
             return row.quality
         return None
+
+    def _sync_favorites(self) -> None:
+        if not self._rows:
+            return
+        changes: List[int] = []
+        for idx, row in enumerate(self._rows):
+            is_favorite = row.pair.upper() in self._favorites
+            if row.favorite != is_favorite:
+                self._rows[idx] = ArbRow(
+                    favorite=is_favorite,
+                    pair=row.pair,
+                    buy_exchange=row.buy_exchange,
+                    buy_price=row.buy_price,
+                    sell_exchange=row.sell_exchange,
+                    sell_price=row.sell_price,
+                    profit_pct=row.profit_pct,
+                    volume_24h=row.volume_24h,
+                    updated_secs=row.updated_secs,
+                    spread=row.spread,
+                    quality=row.quality,
+                    quality_flags=row.quality_flags,
+                    updated_ts=row.updated_ts,
+                    binance_bid=row.binance_bid,
+                    binance_ask=row.binance_ask,
+                    poloniex_bid=row.poloniex_bid,
+                    poloniex_ask=row.poloniex_ask,
+                    data_source=row.data_source,
+                )
+                changes.append(idx)
+        for idx in changes:
+            top_left = self.index(idx, 0)
+            bottom_right = self.index(idx, len(self.headers) - 1)
+            self.dataChanged.emit(top_left, bottom_right)
