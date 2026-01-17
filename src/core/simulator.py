@@ -34,6 +34,9 @@ class MarketSimulator:
     def statuses(self) -> Dict[str, ExchangeStatus]:
         return dict(self._exchange_status)
 
+    def last_quotes(self) -> Dict[str, Dict[str, QuoteSnapshot]]:
+        return {pair: dict(quotes) for pair, quotes in self._last_quotes.items()}
+
     def refresh_pairs(self) -> None:
         self._refresh_pairs()
 

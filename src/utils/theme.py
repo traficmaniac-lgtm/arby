@@ -29,7 +29,7 @@ def dark_theme() -> str:
     QCheckBox {
         spacing: 6px;
     }
-    QSpinBox {
+    QSpinBox, QDoubleSpinBox {
         background-color: #141821;
         border: 1px solid #232838;
         border-radius: 4px;
