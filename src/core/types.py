@@ -23,10 +23,19 @@ class ArbRow:
     profit_pct: float
     volume_24h: float
     updated_secs: float
+    spread: float
+    quality: str
+    quality_flags: tuple[str, ...]
+    binance_bid: float
+    binance_ask: float
+    poloniex_bid: float
+    poloniex_ask: float
+    data_source: str
 
 
 @dataclass(frozen=True)
 class ExchangeStatus:
     name: str
-    connected: bool
+    status: str
     latency_s: float
+    changed_at: float

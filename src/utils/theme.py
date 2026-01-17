@@ -9,7 +9,27 @@ def dark_theme() -> str:
         font-family: "Segoe UI", "Inter", "Arial";
         font-size: 12px;
     }
+    QGroupBox {
+        border: 1px solid #1c2230;
+        border-radius: 6px;
+        margin-top: 12px;
+    }
+    QGroupBox::title {
+        subcontrol-origin: margin;
+        subcontrol-position: top left;
+        padding: 0 6px;
+        color: #b7c0d1;
+    }
     QLineEdit, QComboBox, QTextEdit, QPlainTextEdit, QTableView {
+        background-color: #141821;
+        border: 1px solid #232838;
+        border-radius: 4px;
+        padding: 4px 6px;
+    }
+    QCheckBox {
+        spacing: 6px;
+    }
+    QSpinBox {
         background-color: #141821;
         border: 1px solid #232838;
         border-radius: 4px;
@@ -38,6 +58,21 @@ def dark_theme() -> str:
         gridline-color: #222838;
         selection-background-color: #2a3550;
         selection-color: #e6e9ef;
+    }
+    QTabWidget::pane {
+        border: 1px solid #232838;
+        border-radius: 6px;
+    }
+    QTabBar::tab {
+        background: #141821;
+        padding: 6px 12px;
+        border-top-left-radius: 4px;
+        border-top-right-radius: 4px;
+        border: 1px solid #232838;
+    }
+    QTabBar::tab:selected {
+        background: #1a2130;
+        color: #ffffff;
     }
     QScrollBar:vertical, QScrollBar:horizontal {
         background: #11151d;
